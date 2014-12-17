@@ -56,17 +56,7 @@ class Minty_Plugin implements Typecho_Plugin_Interface
      * @param Typecho_Widget_Helper_Form $form 配置面板
      * @return void
      */
-    public static function config(Typecho_Widget_Helper_Form $form)
-    {
-        // $cache = new Typecho_Widget_Helper_Form_Element_Radio('cache', array('yes' => '开启', 'no' => '关闭'), 'yes', _t('缓存设置'));
-        // $form->addInput($cache);
-
-        // $cacheIp = new Typecho_Widget_Helper_Form_Element_Text('cacheIp', NULL, '127.0.0.1', _t('缓存服务器 IP 地址'));
-        // $form->addInput($cacheIp);
-
-        // $cachePort = new Typecho_Widget_Helper_Form_Element_Text('cachePort', NULL, 6379, _t('缓存服务器端口'));
-        // $form->addInput($cachePort);
-    }
+    public static function config(Typecho_Widget_Helper_Form $form){}
 
     /**
      * 个人用户的配置面板
