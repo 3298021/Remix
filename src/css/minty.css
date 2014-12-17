@@ -1,0 +1,154 @@
+@font-face {
+  font-family: 'minty';
+  src:url('../fonts/minty.eot?oyegdh');
+  src:url('../fonts/minty.eot?#iefixoyegdh') format('embedded-opentype'),
+    url('../fonts/minty.woff?oyegdh') format('woff'),
+    url('../fonts/minty.ttf?oyegdh') format('truetype'),
+    url('../fonts/minty.svg?oyegdh#minty') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.minty,
+.minty * {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+.minty {
+  margin: 1em auto;
+  font: 14px/1.5 "Segoe UI","Lucida Grande",Helvetica,Arial,"Microsoft YaHei","Hiragino Sans GB","Hiragino Sans GB W3",sans-serif;
+}
+
+.minty-controls {
+  position: relative;
+  padding: .5em .715em;
+  background-color: #6699cc;
+  color: #fff;
+}
+
+.minty-detail {
+  height: 1.5em;
+  padding-right: 7em;
+  padding-left: 1.5em;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.minty-duration {
+  position: absolute;
+  top: .8em;
+  right: 4.285em;
+  line-height: 1;
+  text-align: right;
+}
+
+.minty-progress {
+  position: relative;
+  height: .5em;
+  margin-top: .5em;
+  margin-bottom: .15em;
+  background-color: #fff;
+  cursor: pointer;
+}
+.minty-progress-loaded,
+.minty-progress-played {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+}
+.minty-progress-loaded {
+  background-color: #eee;
+}
+.minty-progress-played {
+  background-color: #336699;
+}
+
+[class^="minty-button-"], [class*=" minty-button-"] {
+  position: absolute;
+  top: .8em;
+  cursor: pointer;
+  font-family: 'minty';
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.minty-button-play {
+  left: .715em;
+}
+.minty-button-volume {
+  right: 2.5em;
+}
+.minty-button-menu {
+  right: .715em;
+}
+.minty-pause,
+.minty-mute {
+  display: none;
+}
+.minty-button-play.playing:before {
+  content: "\e602";
+}
+.minty-button-play:before,
+.minty-button-play.pause:before {
+  content: "\e601";
+}
+.minty-button-volume.volume:before,
+.minty-button-volume:before {
+  content: "\e603";
+}
+.minty-button-volume.mute:before {
+  content: "\e604";
+}
+.minty-button-menu:before {
+  content: "\e600";
+}
+
+.minty-playlist {
+  list-style: none;
+  max-height: 0;
+  overflow-y: auto;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-left: 0;
+  background-color: #f9f9f9;
+  -webkit-transition: max-height .3s ease;
+  -moz-transition: max-height .3s ease;
+  transition: max-height .3s ease;
+}
+.minty-playlist.open {
+  min-height: 1em;
+  max-height: 24em;
+}
+.minty-playlist.close {
+  max-height: 0;
+}
+.minty-playlist li {
+  padding: .357em .715em;
+  background-color: #f9f9f9;
+  cursor: pointer;
+}
+.minty-playlist li.selected,
+.minty-playlist li:hover {
+  background-color: #eee;
+}
+
+.minty-playlist::-webkit-scrollbar {
+ width: .5em;
+}
+.minty-playlist::-webkit-scrollbar-track {
+ background-color: #f9f9f9;
+}
+.minty-playlist::-webkit-scrollbar-thumb {
+ border-radius: 3px;
+ background-color: #eee;
+}
+.minty-playlist::-webkit-scrollbar-thumb:hover {
+ background-color: #ccc;
+}
