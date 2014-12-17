@@ -317,6 +317,15 @@ class Minty_Action extends Typecho_Widget implements Widget_Interface_Do
      */
     public function action()
     {
+        Typecho_Widget::widget('Widget_Options')->to($options);
+
+        $siteParts = parse_url($options->siteUrl);
+        $refParts = parse_url($this->request->getReferer());
+
+        if (!$this->request->isAjax() || $siteParts['host'] != $refParts['host']) {
+            throw new Typecho_Widget_Exception(_t('请求的地址不合法'), 403);
+        }
+
         $this->on($this->request->is('do=song'))->song();
         $this->on($this->request->is('do=list'))->songs();
         $this->on($this->request->is('do=album'))->album();
