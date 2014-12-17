@@ -6,4 +6,5 @@
 /dist/js/minty.js
 /dist/js/jquery.min.map
 /dist/js/soundmanager2.js
-/dist/swf/!soundmanager2..swf
+/dist/swf/
+!/dist/swf/soundmanager2.swf
