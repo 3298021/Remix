@@ -163,7 +163,7 @@ class Minty_Action extends Typecho_Widget implements Widget_Interface_Do
             $client->setHeader($key, $value);
         }
 
-        $client->setReferer('http://m.xiami.com')->setTimeout(50)->send($url);
+        $client->setTimeout(50)->send($url);
 
         if (200 !== $client->getResponseStatus()) {
             return;
@@ -185,7 +185,8 @@ class Minty_Action extends Typecho_Widget implements Widget_Interface_Do
             'Proxy-Connection' => 'keep-alive',
             'X-Requested-With' => 'XMLHttpRequest',
             'X-FORWARDED-FOR' => '42.156.140.238',
-            'CLIENT-IP' => '42.156.140.238'
+            'CLIENT-IP' => '42.156.140.238',
+            'Referer' => 'http://m.xiami.com'
         );
     }
 

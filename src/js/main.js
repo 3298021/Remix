@@ -178,7 +178,9 @@
         var items;
         var selectedClass = '.' + config.css.selected;
 
-        items = instances.playitem.filter(selectedClass);
+        if (config.data.sources !== null) {
+          items = instances.playitem.filter(selectedClass);
+        }
 
         if (items) {
           items.each(function() {
@@ -409,6 +411,9 @@
         data: {'do': config.data.type, 'id': config.data.id},
         success: function(result) {
           config.data.sources = result;
+        },
+        error: function() {
+          console.error('无法获取媒体信息');
         }
       });
 

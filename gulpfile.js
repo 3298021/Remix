@@ -19,7 +19,7 @@ var pkg = require('./package.json');
 var banner = [
   '/*! <%= pkg.name %> v<%= pkg.version %>',
   'by <%= pkg.author %>',
-  'Licensed under <%= pkg.license %>',
+  'Licensed under <%= pkg.license.type %>',
   '2014-12-17 */ \n'
 ].join(' | ');
 
