@@ -1,4 +1,4 @@
-(function($, global) {
+(function($, global, undefined) {
   var Player;
   var players = [];
   var playerSelector = '.minty';
@@ -132,28 +132,42 @@
 
       // 下一首
       function getNext() {
+        var source;
+        var total = config.data.sources.length;
+
+        // 让选择位置递增一位
         if (config.data.selectedIndex !== null) {
           config.data.selectedIndex++;
         }
 
-        if (config.data.sources.length > 1) {
-          if (config.data.selectedIndex >= config.data.sources.length) {
+        if (total > 1) {  // 列表多首歌
+          if (config.data.selectedIndex >= total) {  // 超过列表
             if (config.data.loop) {
-              // loop to beginning
+              // 返回第一首歌的数据，并设置选择位置为 0
+              source = getSource(0);
               config.data.selectedIndex = 0;
             } else {
-              // no change
+              // 返回空数据，并设置选择位置为刚播完的歌曲
+              source = getSource(config.data.selectedIndex);
               config.data.selectedIndex--;
-
-              // end playback
-              // config.data.selectedIndex = null;
             }
+          } else {  // 未超过列表
+            // 返回下一首歌的数据，选择位置为下一首歌
+            source = getSource(config.data.selectedIndex);
           }
-        } else {
-          config.data.selectedIndex = null;
+        } else {  // 列表一首歌
+          if (config.data.loop) {
+            // 返回第一首歌数据，并设置选择位置为 0
+            source = getSource(0);
+            config.data.selectedIndex = 0;
+          } else {
+            // 返回空数据，并设置位置为 0
+            source = getSource(config.data.selectedIndex);
+            config.data.selectedIndex = 0;
+          }
         }
 
-        return getSource();
+        return source;
       }
 
       // 上一首
@@ -228,14 +242,14 @@
     } // End Controller
 
     // 播放时间
-    function getTime(msec, useString) {
-      var nSec = Math.floor(msec / 1000);
-      var hh = Math.floor(nSec / 3600);
-      var min = Math.floor(nSec / 60) - Math.floor(hh * 60);
-      var sec = Math.floor(nSec - (hh * 3600) - (min * 60));
+    // ms 为毫秒
+    function getTime(ms) {
+      var seconds = Math.floor(ms / 1000);
+      var m = Math.floor(seconds / 60);
+      var s = Math.floor(seconds % 60);
 
-      return (useString ? ((hh ? hh + ':' : '') + (hh && min < 10 ? '0' + min : min) + ':' + (sec < 10 ? '0' + sec : sec )) : {'min': min, 'sec': sec});
-    } // End getTime
+      return ((m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s);
+    }
 
     // 播放文字
     function setTitle(index) {
@@ -276,7 +290,7 @@
             // 播放进度
             instances.progressPlayed.css('width', width);
             // 播放时间
-            instances.duration.html('-' + getTime(this.duration - this.position, true));
+            instances.duration.html('-' + getTime(this.duration - this.position));
           }
         },
 
@@ -312,13 +326,13 @@
           instances.progressLoaded.css('width', width);
 
           if (!this.isHTML5) {
-            instances.duration.html(getTime(this.durationEstimate, true));
+            instances.duration.html(getTime(this.durationEstimate));
           }
         },
 
         onload: function(ok) {
           if (ok) {
-            instances.duration.html(getTime(this.duration, true));
+            instances.duration.html(getTime(this.duration));
           } else if (this._iO && this._iO.onerror) {
             this._iO.onerror();
           }
@@ -348,21 +362,18 @@
 
           instances.button.play.removeClass('playing');
           instances.progressPlayed.css('width', 0);
+          instances.duration.html('--:--');
 
-          // dom.progress.style.left = '0%';
-          lastIndex = config.data.selectedIndex;
-
-          // next track?
+          // 获取下一首数据
           source = controller.getNext();
 
-          // don't play the same item over and over again, if at end of playlist etc.
-          if (source && config.data.selectedIndex !== lastIndex) {
-            controller.select(config.data.selectedIndex);
-            setTitle(config.data.selectedIndex);
+          // 设置播放器信息
+          controller.select(config.data.selectedIndex);
+          setTitle(config.data.selectedIndex);
 
-            // 播放下一首
+          if (source) {
             this.play({
-              url: controller.getURL()
+              url: source.src
             });
           }
         }
@@ -599,7 +610,6 @@
       var sound;
 
       target = instances.progress.get(0);
-      console.log(target);
       barX = getOffX(target);
       barWidth = target.offsetWidth;
 
