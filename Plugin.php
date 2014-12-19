@@ -78,7 +78,7 @@ class Minty_Plugin implements Typecho_Plugin_Interface
         $content = empty($lastResult) ? $content : $lastResult;
 
         if ($widget instanceof Widget_Archive) {
-            $pattern = '/<p>\[xiami auto=(.*)(\s)loop=(.*)(\s)type=(.*)(\s)songs=(.*)\]<\/p>/i';
+            $pattern = '/<p>\[Minty auto=(.*)(\s)loop=(.*)(\s)type=(.*)(\s)songs=(.*)\]<\/p>/i';
             $replace = '<div class="minty" data-auto="' . '\1' . '" data-loop="' . '\3' . '" data-type="' . '\5' . '" data-songs="' . '\7' . '">
     <div class="minty-controls">
         <div class="minty-detail">歌曲 - 艺术家</div>
@@ -148,7 +148,7 @@ class Minty_Plugin implements Typecho_Plugin_Interface
     {
         ?>// 播放器按钮
     editor.hooks.chain('makeButton', function(buttons, makeButton, bindCommand, ui) {
-        buttons.xiami = makeButton('wmd-xiami-button', '音乐 [xiami] Ctrl+X', '0', function(chunk, postProcessing) {
+        buttons.minty = makeButton('wmd-minty-button', '音乐 [Minty] Ctrl+X', '0', function(chunk, postProcessing) {
             var background = ui.createBackground();
 
             ui.prompt("<p><b>插入音乐</b></p><p>1. 自动(auto) 和循环(loop): <b>1 或 0</b></p><p>2. 类型: 单曲(song),列表(list),专辑(album),精选集(collect)</p><p>3. 输入框可以输入虾米单曲、专辑、精选集或列表的ID如:<br><b>单曲: 1773431302; 列表: 1769023557,2091668</b></p>", '', function(music) {
@@ -157,7 +157,7 @@ class Minty_Plugin implements Typecho_Plugin_Interface
 
                 if (music !== null) {
                     music = music.replace("http://", "");
-                    chunk.startTag = "[xiami auto=自动 loop=循环 type=类型 songs=" + music + "]";
+                    chunk.startTag = "[Minty auto=自动 loop=循环 type=类型 songs=" + music + "]";
                     chunk.endTag = "";
                 }
                 postProcessing();
@@ -166,12 +166,12 @@ class Minty_Plugin implements Typecho_Plugin_Interface
         });
 
         // 按钮样式
-        var button = buttons.xiami.getElementsByTagName("span")[0];
+        var button = buttons.minty.getElementsByTagName("span")[0];
         button.style.backgroundImage = "none";
 
-        buttons.xiami.style.backgroundImage = "url(<?php echo Typecho_Common::url('dist/image/music.png', Helper::options()->pluginUrl('Minty')); ?>)";
-        buttons.xiami.style.backgroundRepeat = "no-repeat";
-        buttons.xiami.style.backgroundPosition = "3px 3px";
+        buttons.minty.style.backgroundImage = "url(<?php echo Typecho_Common::url('dist/image/music.png', Helper::options()->pluginUrl('Minty')); ?>)";
+        buttons.minty.style.backgroundRepeat = "no-repeat";
+        buttons.minty.style.backgroundPosition = "3px 3px";
 
         // 快捷键
         document.getElementById("text").addEventListener("keydown", function(key) {
@@ -180,7 +180,7 @@ class Minty_Plugin implements Typecho_Plugin_Interface
                 var keyCodeStr = String.fromCharCode(keyCode).toLowerCase();
 
                 if (keyCodeStr == "x") {
-                    buttons.xiami.click();
+                    buttons.minty.click();
                 }
             }
         }, false);
