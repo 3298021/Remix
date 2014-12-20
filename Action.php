@@ -1,10 +1,9 @@
 <?php
 /**
- * 虾米歌曲地址获取动作
+ * 歌曲地址解析
  *
  * @package Minty
  * @author shingchi
- * @version 1.0.0
  */
 class Minty_Action extends Typecho_Widget implements Widget_Interface_Do
 {
@@ -223,7 +222,7 @@ class Minty_Action extends Typecho_Widget implements Widget_Interface_Do
             break;
         }
 
-        $this->setCache('xiamiToken', $this->token);
+        $this->setCache('xiamiToken', $this->token, 360000);
     }
 
     /**
@@ -264,12 +263,12 @@ class Minty_Action extends Typecho_Widget implements Widget_Interface_Do
      * @param string $key 键
      * @param mixed $value 值
      */
-    private function setCache($key, $value)
+    private function setCache($key, $value, $expire = 21600)
     {
         $cache = static::getCacheInstance();
 
         $cache->connect('127.0.0.1', 11211);
-        $cache->set($key, serialize($value));
+        $cache->set($key, serialize($value), 0, $expire);
         $cache->close();
     }
 
