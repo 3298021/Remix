@@ -1,525 +1,675 @@
-(function($, global, undefined) {
-  var Player;
-  var players = [];
-  var playerSelector = '.minty';
-  var apiUrl = minty.apiUrl;
-  var swfUrl = minty.swfUrl;
+(function(global, undefined) {
 
-  // 播放器启动
-  soundManager.setup({
-    html5PollingInterval: 50,
-    flashVersion: 9,
-    // url: swfUrl
-  });
+'use strict';
 
-  // 播放器就绪
-  soundManager.onready(function() {
-    $(playerSelector).each(function() {
-      players.push(new Player($(this)));
-    });
-  });
+var Player;
+var players = [];
+var playerSelector = '.minty';
+var utils;
+var http;
+var minty = global.minty;
 
-  // 播放器类
-  Player = function(dom, options) {
+/**
+ * 工具 utils
+ */
+utils = {
+  /**
+   * DOM
+   *
+   * utils.dom.getAll('b')
+   * utils.dom.getAll(document.querySelector('a'), 'b')
+   * utils.dom.get('b')
+   * utils.dom.get(document.querySelector('a'), 'b')
+   */
+  dom: {
+    getAll: function() {
+      var node;
+      var selector;
+      var results;
 
-    // 节点对象
-    var instances;
+      if (arguments.length === 1) {
+        node = global.document.documentElement;
+        selector = arguments[0];
+      } else {
+        node = arguments[0];
+        selector = arguments[1];
+      }
 
-    // 播放器对象
-    var controller;
+      if (node && node.querySelectorAll) {
+        results = node.querySelectorAll(selector);
+      }
 
-    // 声音对象
-    var soundObject;
+      return results;
+    },
+    get: function() {
+      var results = this.getAll.apply(this, arguments);
 
-    // 动作
-    var events;
+      if (results && results.length) {
+        results = results[results.length - 1];
+      }
 
-    // 默认播放序号
-    var defaultItem;
+      return results;
+    },
+    getData: function(node, attribute) {
+      var data;
+      var ua = global.navigator.userAgent;
 
-    // 配置
-    var settings;
-    var config;
+      if ((/msie/i).test(ua)) {
+        data = node.getAttribute('data-' + attribute);
+      } else {
+        data = node.dataset[attribute];
+      }
 
-    settings = {
-      selecter: {
-        controls: '.minty-controls',
-        detail: '.minty-detail',
-        playlist: '.minty-playlist',
-        progress: '.minty-progress',
-        progressLoaded: '.minty-progress-loaded',
-        progressPlayed: '.minty-progress-played',
-        duration: '.minty-duration',
-        button: {
-          play: '.minty-button-play',
-          volume: '.minty-button-volume',
-          menu: '.minty-button-menu'
+      return data;
+    },
+    setData: function(node, attribute, value) {
+      var ua = global.navigator.userAgent;
+
+      if ((/msie/i).test(ua)) {
+        node.setAttribute('data-' + attribute, value);
+      } else {
+        node.dataset[attribute] = value;
+      }
+    }
+  },
+  /**
+   * CSS
+   *
+   * utils.css.add(node, 'example');
+   * utils.css.remove(node, 'example');
+   * utils.css.toggle(node, 'example');
+   * utils.css.swap(node, 'example1', 'example2');
+   */
+  css: {
+    has: function(node, cStr) {
+      var regx = new RegExp('(^|\\s)' + cStr + '(\\s|$)');
+
+      return (node.className !== undefined ? regx.test(node.className) : false);
+    },
+    add: function(node, cStr) {
+      if (!node || !cStr || this.has(node, cStr)) {
+        return false;
+      }
+
+      node.className = (node.className ? node.className + ' ' : '') + cStr;
+    },
+    remove: function(node, cStr) {
+      var regx;
+
+      if (!node || !cStr || !this.has(node, cStr)) {
+        return false;
+      }
+
+      regx = new RegExp('( ' + cStr + ')|(' + cStr + ')', 'g');
+      node.className = node.className.replace(regx, '');
+    },
+    toggle: function(node, cStr) {
+      var found;
+      var method;
+
+      found = this.has(node, cStr);
+      method = (found ? this.remove : this.add);
+
+      method.apply(this, [node, cStr]);
+
+      // return !found;
+    },
+    swap: function(node, cStr1, cStr2) {
+      var temp = {
+        className: node.className
+      };
+
+      this.remove(temp, cStr1);
+      this.add(temp, cStr2);
+
+      node.className = temp.className;
+    }
+  },
+  /**
+   * Events
+   *
+   * utils.events.add(node, 'click', 'handlerFunction');
+   * utils.events.remove(node, 'click', 'handlerFunction');
+   */
+  events: {
+    add: function(node, evtName, evtHandler) {
+      var eventObject = {
+        detach: function() {
+          return remove(node, evtName, evtHandler);
         }
-      },
-      css: {
-        disabled: 'disabled',
-        selected: 'selected',
-        active: 'active',
-        mute: 'mute',
-        menu: 'open'
-      },
-      data: {
-        type: null,
-        id: null,
-        loop: true,
-        auto: true,
-        selectedIndex: 0,
-        sources: null
+      };
+
+      if (global.addEventListener) {
+        node.addEventListener(evtName, evtHandler, false);
+      } else {
+        node.attachEvent('on' + evtName, evtHandler);
+      }
+
+      return eventObject;
+    },
+    remove: (global.removeEventListener !== undefined ? function(node, evtName, evtHandler) {
+      return node.removeEventListener(evtName, evtHandler, false);
+    } : function(node, evtName, evtHandler) {
+      return node.detachEvent('on' + evtName, evtHandler);
+    }),
+  }
+};
+
+/**
+ * 请求 http
+ *
+ * 不做跨域处理
+ */
+http = {
+  req: function(settings) {
+    var xhr;
+    var config = {
+      method: settings.type || 'GET',
+      url: ((settings.url || location.href) + '').replace('/#.*$/', '').replace('/^\/\//', location.protocol + '//'),
+      data: settings.data || null,
+      dataType: settings.dataType || 'json',
+      async: settings.async || true,
+      callback: settings.callback || new Function
+    };
+
+    // 获取 XMLHttpRequest 对象
+    xhr = this.xhr.call(this);
+
+    // 设置请求地址
+    if (config.data) {
+      config.url = this.setUrl(config.url, config.data);
+    }
+
+    xhr.open(config.method, config.url, config.async);
+    xhr.setRequestHeader("Content-Type", "charset=UTF-8");
+    xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+    xhr.setRequestHeader("Minty-Hash", minty.hash);
+
+    // 就绪及回调
+    xhr.onreadystatechange = function() {
+      if (4 == xhr.readyState) {
+        if (200 == xhr.status) {
+          var data = ('json' != config.dataType) ? xhr.responseText : JSON.parse(xhr.responseText);
+
+          config.callback.call(this, data);
+        } else {
+          console.error('Bad Request: ' + xhr.statusText);
+        }
       }
     };
 
-    // 初始化配置
-    function setConfig() {
-      config = $.extend({}, settings, options);
+    try {
+      xhr.send();
+    } catch (e) {}
+  },
+  xhr: function() {
+    try {
+      return new XMLHttpRequest();
+    } catch (e) {}
+  },
+  setUrl: function(url, data) {
+    var query;
+    var result = [];
+
+    for (var i in data) {
+      result.push(i + '=' + data[i]);
     }
 
-    // 初始化节点对象
-    function setInstances() {
-      var controls;
-      var playlist;
-      var progress;
+    query = result.join('&');
 
-      controls = dom.find(config.selecter.controls);
-      playlist = dom.find(config.selecter.playlist);
-      progress = controls.find(config.selecter.progress);
+    return url + ((/\?/).test(url) ? '&' : '?') + query;
+  }
+};
 
-      instances = {
-        player: dom,
-        controls: controls,
-        playlist: playlist,
-        progress: progress,
-        progressLoaded: progress.find(config.selecter.progressLoaded),
-        progressPlayed: progress.find(config.selecter.progressPlayed),
-        duration: controls.find(config.selecter.duration),
-        detail: controls.find(config.selecter.detail),
-        button: {
-          play: controls.find(config.selecter.button.play),
-          volume: controls.find(config.selecter.button.volume),
-          menu: controls.find(config.selecter.button.menu)
-        }
-      };
+/**
+ * 播放器 Player
+ */
+Player = function(node) {
+
+  var dom;
+  var css;
+  var data;
+  var selector;
+  var actions;
+  var controller;
+  var soundObject;
+
+  /* 选择器 */
+  selector = {
+    playlist: '.minty-playlist',
+    controls: {
+      main: '.minty-controls',
+      progress: {
+        track: '.minty-progress',
+        loaded: '.minty-progress-loaded',
+        played: '.minty-progress-played'
+      },
+      button: {
+        play: '.minty-button-play',
+        volume: '.minty-button-volume',
+        menu: '.minty-button-menu'
+      },
+      duration: '.minty-duration',
+      detail: '.minty-detail'
+    }
+  };
+
+  /* CSS */
+  css = {
+    disabled: 'disabled',
+    selected: 'selected',
+    active: 'active',
+    noVolume: 'no-volume',
+    mute: 'mute',
+    menu: 'open'
+  };
+
+  /* 节点 */
+  dom = {
+    player: null,
+    playlist: null,
+    controls: {
+      main: null,
+      progress: {
+        track: null,
+        loaded: null,
+        played: null
+      },
+      button: {
+        play: null,
+        volume: null,
+        menu: null
+      },
+      duration: null,
+      detail: null
+    }
+  };
+
+  /* 数据 */
+  data = {
+    auto: false,
+    loop: true,
+    selectedIndex: 0,
+    sources: null
+  };
+
+  /* 控制器 */
+  function Controller() {
+    /* 获取所有歌曲资源 */
+    function getSources() {
+      return data.sources;
     }
 
-    // 播放控制器
-    function Controller() {
-      // 播放数据，即API返回数据
-      // var data = config.data;
+    /* 获取某一条歌曲资源 */
+    function getSource(index) {
+      var sources;
+      var source;
 
-      // 获取列表数据
-      function getSources() {
-        return config.data.sources;
+      if (data.selectedIndex === null) {
+        return index;
       }
 
-      // 获取单曲数据
-      function getSource(index) {
-        var sources;
+      sources = getSources();
+      index = (index !== undefined ? index : data.selectedIndex);
+      source = sources[index];
 
-        if (config.data.selectedIndex === null) {
-          return index;
-        }
+      return source;
+    }
 
-        sources = getSources();
-        index = (index !== undefined ? index : config.data.selectedIndex);
-        source = sources[index];
+    /* 获取下一首歌曲资源 */
+    function getNext() {
+      var source;
+      var total = data.sources.length;
 
-        return source;
+      // 让选择位置递增一位
+      if (data.selectedIndex !== null) {
+        data.selectedIndex++;
       }
 
-      // 下一首
-      function getNext() {
-        var source;
-        var total = config.data.sources.length;
-
-        // 让选择位置递增一位
-        if (config.data.selectedIndex !== null) {
-          config.data.selectedIndex++;
-        }
-
-        if (total > 1) {  // 列表多首歌
-          if (config.data.selectedIndex >= total) {  // 超过列表
-            if (config.data.loop) {
-              // 返回第一首歌的数据，并设置选择位置为 0
-              source = getSource(0);
-              config.data.selectedIndex = 0;
-            } else {
-              // 返回空数据，并设置选择位置为刚播完的歌曲
-              source = getSource(config.data.selectedIndex);
-              config.data.selectedIndex--;
-            }
-          } else {  // 未超过列表
-            // 返回下一首歌的数据，选择位置为下一首歌
-            source = getSource(config.data.selectedIndex);
-          }
-        } else {  // 列表一首歌
-          if (config.data.loop) {
-            // 返回第一首歌数据，并设置选择位置为 0
+      if (total > 1) {  // 列表多首歌
+        if (data.selectedIndex >= total) {  // 超过列表
+          if (1 == data.loop) {
+            // 返回第一首歌的数据，并设置选择位置为 0
             source = getSource(0);
-            config.data.selectedIndex = 0;
+            data.selectedIndex = 0;
           } else {
-            // 返回空数据，并设置位置为 0
-            source = getSource(config.data.selectedIndex);
-            config.data.selectedIndex = 0;
+            // 返回空数据，并设置选择位置为刚播完的歌曲
+            source = getSource(data.selectedIndex);
+            data.selectedIndex--;
           }
+        } else {  // 未超过列表
+          // 返回下一首歌的数据，选择位置为下一首歌
+          source = getSource(data.selectedIndex);
         }
-
-        return source;
+      } else {  // 列表一首歌
+        if (1 == data.loop) {
+          // 返回第一首歌数据，并设置选择位置为 0
+          source = getSource(0);
+          data.selectedIndex = 0;
+        } else {
+          // 返回空数据，并设置位置为 0
+          source = getSource(data.selectedIndex);
+          data.selectedIndex = 0;
+        }
       }
 
-      // 上一首
-      function getPrevious() {
-        config.data.selectedIndex--;
+      return source;
+    }
 
-        if (config.data.selectedIndex < 0) {
-          // wrapping around beginning of list? loop or exit.
-          if (config.data.loop) {
-            config.data.selectedIndex = config.data.sources.length - 1;
-          } else {
-            // undo
-            config.data.selectedIndex++;
-          }
+    /* 获取上一首歌曲资源 */
+    function getPrevious() {
+      data.selectedIndex--;
+
+      if (data.selectedIndex < 0) {
+        if (1 == data.loop) {
+          data.selectedIndex = data.sources.length - 1;
+        } else {
+          data.selectedIndex++;
         }
-
-        return getSource();
       }
 
-      // 清除选择样式
-      function resetSelected() {
-        var items;
-        var selectedClass = '.' + config.css.selected;
+      return getSource();
+    }
 
-        if (config.data.sources !== null) {
-          items = instances.playitem.filter(selectedClass);
+    /* 清除选择样式 */
+    function resetSelected() {
+      var items;
+      var selectedClass = '.' + css.selected;
+
+      if (data.sources !== null) {
+        // items = instances.playitem.filter(selectedClass);
+        items = utils.dom.getAll(dom.playlist, selectedClass);
+      }
+
+      if (items) {
+        for (var i = 0; i < items.length; i++) {
+          utils.css.remove(items[i], css.selected);
+        }
+      }
+    }
+
+    /* 选择单曲 */
+    function select(index) {
+      var items;
+
+      // 重置选择样式
+      resetSelected();
+
+      if (index !== undefined && index !== null) {
+        items = utils.dom.getAll(dom.playlist, 'li');
+
+        for (var i = 0; i < items.length; i++) {
+          if (index == i) {
+            utils.css.add(items[i], css.selected);
+            break;
+          }
+        }
+      }
+
+      data.selectedIndex = index;
+    }
+
+    /* 获取地址 */
+    function getURL() {
+      var source;
+      var url;
+
+      source = getSource();
+
+      if (source) {
+        url = source.src;
+      }
+
+      return url;
+    }
+
+    return {
+      getNext: getNext,
+      getPrevious: getPrevious,
+      getSource: getSource,
+      select: select,
+      getURL: getURL
+    };
+  }  // End Controller
+
+  /* 播放时间处理 ms 为毫秒 */
+  function getTime(ms) {
+    var seconds = Math.floor(ms / 1000);
+    var m = Math.floor(seconds / 60);
+    var s = Math.floor(seconds % 60);
+
+    return ((m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s);
+  }
+
+  /* 设置播放标题 */
+  function setTitle(index) {
+    var sources;
+
+    sources = data.sources;
+    dom.controls.detail.innerHTML = sources[index].title + ' - ' + sources[index].author;
+  }
+
+  /* 设置播放列表初始状态 */
+  function setPlaylist() {
+    if (data.sources.length > 1) {
+      utils.css.add(dom.playlist, css.menu);
+    }
+  }
+
+  /* 创建声音媒体 */
+  function makeSound(url) {
+    var sound = soundManager.createSound({
+      url: url,
+      // type: 'audio/mp3',
+
+      whileplaying: function() {
+        var progressMaxLeft = 100;
+        var width;
+
+        // 播放进度
+        width = Math.min(100, Math.max(0, (100 * this.position / this.durationEstimate))) + '%';
+
+        if (this.duration) {
+          // 播放进度
+          dom.controls.progress.played.style.width = width;
+          // 播放时间
+          dom.controls.duration.innerHTML = '-' + getTime(this.duration - this.position);
+        }
+      },
+
+      // 缓冲状态
+      onbufferchange: function(isBuffering) {
+        if (isBuffering) {
+          utils.css.add(dom.player, 'buffering');
+        } else {
+          utils.css.remove(dom.player, 'buffering');
+        }
+      },
+
+      // 播放中
+      onplay: function() {
+        utils.css.swap(dom.controls.button.play, 'paused', 'playing');
+      },
+
+      // 暂停
+      onpause: function() {
+        utils.css.swap(dom.controls.button.play, 'playing', 'paused');
+      },
+
+      // 重新播放
+      onresume: function() {
+        utils.css.swap(dom.controls.button.play, 'paused', 'playing');
+      },
+
+      // 加载中
+      whileloading: function() {
+        var width = ((this.bytesLoaded / this.bytesTotal) * 100) + '%';
+
+        // 加载进度条
+        dom.controls.progress.loaded.style.width = width;
+
+        if (!this.isHTML5) {
+          dom.controls.duration.innerHTML = getTime(this.durationEstimate);
+        }
+      },
+
+      onload: function(ok) {
+        if (ok) {
+          dom.controls.duration.innerHTML = getTime(this.duration);
+        } else if (this._iO && this._iO.onerror) {
+          this._iO.onerror();
+        }
+      },
+
+      onerror: function() {
+        var source;
+
+        source = controller.getSource();
+
+        if (source) {
+          dom.controls.detail.innerHTML = '错误: 当前歌曲无法播放';
         }
 
-        if (items) {
-          items.each(function() {
-            $(this).removeClass(config.css.selected);
+        // 设置播放按钮为暂停中状态
+        utils.css.swap(dom.controls.button.play, 'playing', 'paused');
+      },
+
+      onstop: function() {
+        utils.css.remove(dom.controls.button.play, 'playing');
+      },
+
+      onfinish: function() {
+        var source;
+
+        utils.css.remove(dom.controls.button.play, 'playing');
+        dom.controls.progress.played.style.width = 0;
+        dom.controls.duration.innerHTML = '00:00';
+
+        // 获取下一首数据
+        source = controller.getNext();
+
+        // 设置播放器信息
+        controller.select(data.selectedIndex);
+        setTitle(data.selectedIndex);
+
+        if (source) {
+          this.play({
+            url: source.src
           });
         }
       }
+    });
 
-      // 选择单曲
-      function select(index) {
-        var item;
+    return sound;
+  }  // End makeSound
 
-        // 重置选择样式
-        resetSelected();
+  /* 播放选择的歌曲 */
+  function playIndex(index) {
+    var source = data.sources[index];
 
-        if (index !== undefined || index !== null) {
-          item = instances.playitem[index];
-          $(item).addClass(config.css.selected);
-        }
-
-        config.data.selectedIndex = index;
+    if (soundManager.canPlayURL(source.src)) {
+      if (!soundObject) {
+        soundObject = makeSound(source.src);
       }
 
-      // 获取地址
-      function getURL() {
-        var source;
-        var url;
+      soundObject.stop();
 
-        source = getSource();
+      controller.select(index);
 
-        if (source) {
-          url = source.src;
-        }
+      setTitle(index);
 
-        return url;
-      }
-
-      return {
-        getNext: getNext,
-        getPrevious: getPrevious,
-        getSource: getSource,
-        getURL: getURL,
-        select: select
-      };
-    } // End Controller
-
-    // 播放时间
-    // ms 为毫秒
-    function getTime(ms) {
-      var seconds = Math.floor(ms / 1000);
-      var m = Math.floor(seconds / 60);
-      var s = Math.floor(seconds % 60);
-
-      return ((m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s);
-    }
-
-    // 播放文字
-    function setTitle(index) {
-      var sources;
-
-      sources = config.data.sources;
-
-      instances.detail.html(sources[index].title + ' - ' + sources[index].author);
-    }
-
-    // 设置标题
-    function setPlaylist() {
-      var number = config.data.sources.length;
-
-      if (number > 1) {
-        instances.playlist.addClass(config.css.menu);
-      }
-    }
-
-    // 播放媒体
-    function makeSound(url) {
-      var sound = soundManager.createSound({
-        url: url,
-
-        whileplaying: function() {
-          var progressMaxLeft = 100;
-          // var left;
-          var width;
-
-          // 进度按钮偏移
-          // left = Math.min(progressMaxLeft, Math.max(0, (progressMaxLeft * (this.position / this.durationEstimate)))) + '%';
-
-          // 播放进度
-          width = Math.min(100, Math.max(0, (100 * this.position / this.durationEstimate))) + '%';
-
-          if (this.duration) {
-            // dom.progress.style.left = left;
-            // 播放进度
-            instances.progressPlayed.css('width', width);
-            // 播放时间
-            instances.duration.html('-' + getTime(this.duration - this.position));
-          }
-        },
-
-        // 缓冲状态
-        onbufferchange: function(isBuffering) {
-          if (isBuffering) {
-            instances.player.addClass('buffering');
-          } else {
-            instances.player.removeClass('buffering');
-          }
-        },
-
-        // 播放中
-        onplay: function() {
-          instances.button.play.removeClass('paused').addClass('playing');
-        },
-
-        // 暂停
-        onpause: function() {
-          instances.button.play.removeClass('playing').addClass('paused');
-        },
-
-        // 重新播放
-        onresume: function() {
-          instances.button.play.removeClass('paused').addClass('playing');
-        },
-
-        // 加载中
-        whileloading: function() {
-          var width = ((this.bytesLoaded / this.bytesTotal) * 100) + '%';
-
-          // 加载进度条
-          instances.progressLoaded.css('width', width);
-
-          if (!this.isHTML5) {
-            instances.duration.html(getTime(this.durationEstimate));
-          }
-        },
-
-        onload: function(ok) {
-          if (ok) {
-            instances.duration.html(getTime(this.duration));
-          } else if (this._iO && this._iO.onerror) {
-            this._iO.onerror();
-          }
-        },
-
-        onerror: function() {
-          var source;
-
-          source = controller.getSource();
-
-          if (source) {
-            // instances.detail.html('ERROR - ' + config.data.sources[config.data.selectedIndex].title);
-            instances.detail.html('错误: 当前歌曲无法播放');
-          }
-
-          // 设置播放按钮为暂停中状态
-          instances.button.play.removeClass('playing').addClass('paused');
-        },
-
-        onstop: function() {
-          instances.button.play.removeClass('playing');
-        },
-
-        onfinish: function() {
-          var lastIndex;
-          var source;
-
-          instances.button.play.removeClass('playing');
-          instances.progressPlayed.css('width', 0);
-          instances.duration.html('--:--');
-
-          // 获取下一首数据
-          source = controller.getNext();
-
-          // 设置播放器信息
-          controller.select(config.data.selectedIndex);
-          setTitle(config.data.selectedIndex);
-
-          if (source) {
-            this.play({
-              url: source.src
-            });
-          }
-        }
+      soundObject.play({
+        url: source.src,
+        position: 0
       });
+    }
+  }
 
-      return sound;
+  /* 获取请求数据后初始播放器数据 */
+  function refresh(sources) {
+    if (undefined == sources || null == sources || sources.length < 1) {
+      return;
     }
 
-    function playIndex(index) {
-      var source = config.data.sources[index];
+    // 初始媒体资源
+    data.sources = sources;
+    // 初始播放模式
+    data.auto = utils.dom.getData(dom.player, 'auto');
+    data.loop = utils.dom.getData(dom.player, 'loop');
 
-      if (soundManager.canPlayURL(source.src)) {
-        if (!soundObject) {
-          soundObject = makeSound(source.src);
-        }
+    // 初始播放列表
+    for (var i = 0; i < sources.length; i++) {
+      var item = global.document.createElement('li');
 
-        soundObject.stop();
-
-        controller.select(index);
-
-        setTitle(index);
-
-        soundObject.play({
-          url: source.src,
-          position: 0
-        });
-      }
-    }
-
-    function getMedia() {
-      config.data.type = instances.player.data('type');
-      config.data.id = instances.player.data('songs');
-
-      // 设置播放模式
-      if (instances.player.data('auto') !== undefined) {
-        config.data.auto = instances.player.data('auto');
-      }
-      if (instances.player.data('loop') !== undefined) {
-        config.data.loop = instances.player.data('loop');
-      }
-
-      $.ajax({
-        url: apiUrl,
-        dataType: 'json',
-        async: false,
-        data: {'do': config.data.type, 'id': config.data.id},
-        success: function(result) {
-          config.data.sources = result;
-        },
-        error: function() {
-          console.error('无法获取媒体信息');
-        }
-      });
-
-      // 初始播放列表
-      if (config.data.sources && config.data.sources.length > 0) {
-        for (var i = 0; i < config.data.sources.length; i++) {
-          var title = config.data.sources[i].title;
-          var author = config.data.sources[i].author;
-          var item = '<li data-index="' + i + '">' + title + ' - ' + author + '</li>';
-
-          instances.playlist.append(item);
-        }
-
-        // 初始化播放项目对象
-        instances.playitem = instances.playlist.children();
-      }
-    }
-
-    function init() {
-      if (!dom) {
-        console.warn('init(): No playerNode element?');
-      }
-
-      // 初始化配置
-      setConfig();
-
-      // 初始化节点对象
-      setInstances();
-
-      // 获取媒体资源并初始化播放列表
-      getMedia();
-
-      // 实例化播放控制器
-      controller = new Controller();
-
-      // 默认选择第一个
-      controller.select(0);
-
-      // 自动播放
-      if (config.data.auto) {
-        playIndex(0);
-      }
-
-      // 设置播放文字
-      setTitle(0);
-
-      // 设置菜单
-      setPlaylist();
-
-      // 绑定点击监听
-      events.add(instances.player.get(0), 'click', handleClick);
-
-      // 绑定滚动条监听
-      events.add(instances.progress.get(0), 'click', handleShuffle);
-    }
-
-    // 事件绑定
-    events = {
-      add: function(o, evtName, evtHandler) {
-        // return an object with a convenient detach method.
-        var eventObject = {
-          detach: function() {
-            return remove(o, evtName, evtHandler);
-          }
-        };
-
-        if (window.addEventListener) {
-          o.addEventListener(evtName, evtHandler, false);
-        } else {
-          o.attachEvent('on' + evtName, evtHandler);
-        }
-
-        return eventObject;
-      },
-
-      remove: (window.removeEventListener !== undefined ? function(o, evtName, evtHandler) {
-        return o.removeEventListener(evtName, evtHandler, false);
-      } : function(o, evtName, evtHandler) {
-        return o.detachEvent('on' + evtName, evtHandler);
-      }),
-
-      preventDefault: function(e) {
-        if (e.preventDefault) {
-          e.preventDefault();
-        } else {
-          e.returnValue = false;
-          e.cancelBubble = true;
-        }
-
-        return false;
-      }
+      item.innerHTML = sources[i].title + ' - ' + sources[i].author;
+      utils.dom.setData(item, 'index', i);
+      dom.playlist.appendChild(item);
     };
 
-    // 点击监听
-    function handleClick(e) {
+    // 实例化播放控制器
+    controller = new Controller();
+
+    // 默认选择第一个
+    controller.select(0);
+
+    // 自动播放
+    if (1 == data.auto) {
+      playIndex(0);
+    }
+
+    // 设置播放文字
+    setTitle(0);
+
+    // 设置播放列表默认伸缩
+    setPlaylist();
+
+    // 绑定动作
+    utils.events.add(dom.player, 'click', actions.handleClick);
+    utils.events.add(dom.controls.progress.track, 'click', actions.handleShuffle);
+  }
+
+  /* 初始化 */
+  function init() {
+    if (!node) {
+      console.warn('Could not find any elements of player!');
+    }
+
+    // 初始节点
+    dom.player = node;
+    dom.playlist = utils.dom.get(dom.player, selector.playlist);
+    // controls
+    dom.controls.main = utils.dom.get(dom.player, selector.controls.main);
+    dom.controls.progress.track = utils.dom.get(dom.controls.main, selector.controls.progress.track);
+    dom.controls.progress.loaded = utils.dom.get(dom.controls.main, selector.controls.progress.loaded);
+    dom.controls.progress.played = utils.dom.get(dom.controls.main, selector.controls.progress.played);
+    dom.controls.button.play = utils.dom.get(dom.controls.main, selector.controls.button.play);
+    dom.controls.button.volume = utils.dom.get(dom.controls.main, selector.controls.button.volume);
+    dom.controls.button.menu = utils.dom.get(dom.controls.main, selector.controls.button.menu);
+    dom.controls.duration = utils.dom.get(dom.controls.main, selector.controls.duration);
+    dom.controls.detail = utils.dom.get(dom.controls.main, selector.controls.detail);
+
+    if (global.navigator.userAgent.match(/mobile/i)) {
+      // 为手机客户端上 HTML5 audio set volume.
+      utils.css.add(dom.player, css.noVolume);
+    }
+
+    var id = utils.dom.getData(dom.player, 'songs');
+    var type = utils.dom.getData(dom.player, 'type');
+    var serve = utils.dom.getData(dom.player, 'serve');
+
+    // 初始播放器再刷新播放器数据
+    http.req({
+      url: minty.apiUrl,
+      data: {'serve': serve, 'do': type, 'id': id},
+      callback: refresh
+    });
+  }
+
+  init();
+
+  /* 动作 */
+  actions = {
+    handleClick: function(e) {
       var evt;
       var target;
       var offset;
@@ -528,7 +678,7 @@
       var src;
       var handled;
 
-      evt = (e || window.event);
+      evt = (e || global.event);
       target = evt.target || evt.srcElement;
 
       if (target && target.nodeName) {
@@ -536,10 +686,10 @@
 
         // 播放列表触发
         if (targetNodeName === 'li') {
-          index = $(target).data('index');
-          src = config.data.sources[index].src;
+          index = utils.dom.getData(target, 'index');
+          src = data.sources[index].src;
 
-          if (config.data.selectedIndex === index) {
+          if (data.selectedIndex === index) {
             if (!soundObject) {
               soundObject = makeSound(src);
             }
@@ -555,15 +705,14 @@
 
         // 按钮触发
         if (targetNodeName === 'i') {
-          var playBtn = config.selecter.button.play.replace('\.', '');
-          var volumeBtn = config.selecter.button.volume.replace('\.', '');
-          var menuBtn = config.selecter.button.menu.replace('\.', '');
-          var targetClassName = $(target).attr('class').toString();
+          var btnPlayRegx = new RegExp('minty-button-play');
+          var btnVolumeRegx = new RegExp('minty-button-volume');
+          var btnMenuRegx = new RegExp('minty-button-menu');
 
           // 播放按钮
-          if (targetClassName.indexOf(playBtn) >= 0) {
-            index = config.data.selectedIndex;
-            src = config.data.sources[index].src;
+          if (btnPlayRegx.test(target.className)) {
+            index = data.selectedIndex;
+            src = data.sources[index].src;
 
             if (!soundObject) {
               soundObject = makeSound(src);
@@ -576,18 +725,18 @@
           }
 
           // 音量按钮
-          if (targetClassName.indexOf(volumeBtn) >= 0) {
+          if (btnVolumeRegx.test(target.className)) {
             if (soundObject) {
               soundObject.toggleMute();
-              instances.button.volume.toggleClass(config.css.mute);
+              utils.css.toggle(dom.controls.button.volume, css.mute);
             }
 
             handled = true;
           }
 
           // 菜单按钮
-          if (targetClassName.indexOf(menuBtn) >= 0) {
-            instances.playlist.toggleClass(config.css.menu);
+          if (btnMenuRegx.test(target.className)) {
+            utils.css.toggle(dom.playlist, css.menu);
 
             handled = true;
           }
@@ -595,13 +744,10 @@
       }
 
       if (!handled) {
-        // prevent browser fall-through
         return false;
       }
-    }
-
-    // 鼠标移动
-    function handleShuffle(e) {
+    },
+    handleShuffle: function(e) {
       var target;
       var barX;
       var barWidth;
@@ -609,23 +755,16 @@
       var newPosition;
       var sound;
 
-      target = instances.progress.get(0);
+      target = dom.controls.progress.track;
       barX = getOffX(target);
       barWidth = target.offsetWidth;
-
       x = (e.clientX - barX);
-
       newPosition = (x / barWidth);
-
       sound = soundObject;
 
       if (sound && sound.duration) {
-
         sound.setPosition(sound.duration * newPosition);
-
-        // a little hackish: ensure UI updates immediately with current position, even if audio is buffering and hasn't moved there yet.
         sound._iO.whileplaying.apply(sound);
-
       }
 
       function getOffX(o) {
@@ -645,10 +784,26 @@
 
       return false;
     }
+  };
 
-    // 播放器初始化
-    init();
+};
 
-  } // End Player
+/* soundManager 初始化 */
+soundManager.setup({
+  html5PollingInterval: 50,
+  flashVersion: 9
+});
 
-})(jQuery, this);
+soundManager.onready(function() {
+  var nodes;
+
+  nodes = utils.dom.getAll(playerSelector);
+
+  if (nodes && nodes.length) {
+    for (var i = 0; i < nodes.length; i++) {
+      players.push(new Player(nodes[i]));
+    }
+  }
+});
+
+})(this);

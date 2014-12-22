@@ -2,11 +2,11 @@
 if (!defined('__TYPECHO_ROOT_DIR__')) exit;
 
 /**
- * 支持虾米音乐的播放器
+ * 音乐播放器
  *
  * @package Minty
- * @author shingchi
- * @version 1.0.1
+ * @author ShingChi
+ * @version 2.0.0
  * @link https://github.com/shingchi
  */
 class Minty_Plugin implements Typecho_Plugin_Interface
@@ -20,10 +20,6 @@ class Minty_Plugin implements Typecho_Plugin_Interface
      */
     public static function activate()
     {
-        if (!extension_loaded('memcache')) {
-            throw new Typecho_Plugin_Exception(_t('对不起, 您的主机不支持 Memcache 服务, 无法使用此插件'));
-        }
-
         // 编辑按钮
         Typecho_Plugin::factory('admin/editor-js.php')->markdownEditor = array('Minty_Plugin', 'addButton');
 
@@ -56,7 +52,46 @@ class Minty_Plugin implements Typecho_Plugin_Interface
      * @param Typecho_Widget_Helper_Form $form 配置面板
      * @return void
      */
-    public static function config(Typecho_Widget_Helper_Form $form){}
+    public static function config(Typecho_Widget_Helper_Form $form)
+    {
+        /** 缓存模式 */
+        $cacheMode = new Typecho_Widget_Helper_Form_Element_Radio(
+            'cacheMode',
+            array(
+                'memcache' => _t('Memcache'),
+                'file' => _t('文件式'),
+                'redis' => _t('Redis')
+            ),
+            'memcache',
+            _t('缓存模式'),
+            _t('Redis 缓存暂时无法使用，请选择其余两个，默认为 Memcache。下面配置留空为默认，文件式缓存不需要配置。')
+        );
+        $form->addInput($cacheMode);
+
+        /** 缓存服务地址 */
+        $cacheHost = new Typecho_Widget_Helper_Form_Element_Text(
+            'cacheHost', NULL, '127.0.0.1',
+            _t('缓存服务地址'),
+            _t('默认为 127.0.0.1')
+        );
+        $form->addInput($cacheHost);
+
+        /** 缓存服务地址 */
+        $cachePort = new Typecho_Widget_Helper_Form_Element_Text(
+            'cachePort', NULL, '11211',
+            _t('缓存服务端口'),
+            _t('Memcache 默认为 11211，Redis 默认为 6379')
+        );
+        $form->addInput($cachePort);
+
+        /** 请求哈希值 */
+        $hash = new Typecho_Widget_Helper_Form_Element_Text(
+            'hash', NULL, 'mintyv2.0.0',
+            _t('前端请求哈希值'),
+            _t('设置有利于防止别人盗用自己站点的api')
+        );
+        $form->addInput($hash);
+    }
 
     /**
      * 个人用户的配置面板
@@ -78,8 +113,8 @@ class Minty_Plugin implements Typecho_Plugin_Interface
         $content = empty($lastResult) ? $content : $lastResult;
 
         if ($widget instanceof Widget_Archive) {
-            $pattern = '/<p>\[Minty auto=(.*)(\s)loop=(.*)(\s)type=(.*)(\s)songs=(.*)\]<\/p>/i';
-            $replace = '<div class="minty" data-auto="' . '\1' . '" data-loop="' . '\3' . '" data-type="' . '\5' . '" data-songs="' . '\7' . '">
+            $pattern = '/<p>\[Minty serve=(.*)(\s)auto=(.*)(\s)loop=(.*)(\s)type=(.*)(\s)songs=(.*)\]<\/p>/i';
+            $replace = '<div class="minty" data-serve="' . '\1' . '" data-auto="' . '\3' . '" data-loop="' . '\5' . '" data-type="' . '\7' . '" data-songs="' . '\9' . '">
     <div class="minty-controls">
         <div class="minty-detail">歌曲 - 艺术家</div>
         <div class="minty-progress">
@@ -121,21 +156,19 @@ class Minty_Plugin implements Typecho_Plugin_Interface
     public static function footer()
     {
         Typecho_Widget::widget('Widget_Options')->to($options);
-        $jq = $options->pluginUrl . '/Minty/dist/js/jquery.min.js';
-        $sm = $options->pluginUrl . '/Minty/dist/js/soundmanager2.min.js';
-        $mt = $options->pluginUrl . '/Minty/dist/js/minty.min.js';
+
+        $js = $options->pluginUrl . '/Minty/dist/js/minty.concat.min.js';
         $swf = $options->pluginUrl . '/Minty/dist/swf';
 ?><script>
   // Minty Config
   var minty = {
     apiUrl: '<?php $options->index('/action/minty'); ?>',
-    swfUrl: '<?php echo $swf; ?>/'
+    swfUrl: '<?php echo $swf; ?>/',
+    hash: '<?php echo Typecho_Common::hash($options->plugin('Minty')->hash); ?>'
   };
 </script>
 <?php
-        echo '<script src="' . $jq . '"></script>' . "\n";
-        echo '<script src="' . $sm . '"></script>' . "\n";
-        echo '<script src="' . $mt . '"></script>' . "\n";
+        echo '<script src="' . $js . '"></script>' . "\n";
     }
 
     /**
@@ -157,7 +190,7 @@ class Minty_Plugin implements Typecho_Plugin_Interface
 
                 if (music !== null) {
                     music = music.replace("http://", "");
-                    chunk.startTag = "[Minty auto=自动 loop=循环 type=类型 songs=" + music + "]";
+                    chunk.startTag = "[Minty serve=服务商 auto=自动 loop=循环 type=类型 songs=" + music + "]";
                     chunk.endTag = "";
                 }
                 postProcessing();

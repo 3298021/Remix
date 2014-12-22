@@ -16,7 +16,7 @@
 }
 .minty {
   margin: 1em auto;
-  font: 14px/1.5 "Segoe UI","Lucida Grande",Helvetica,Arial,"Microsoft YaHei","Hiragino Sans GB","Hiragino Sans GB W3",sans-serif;
+  font: 14px/1.5 "Segoe UI","Lucida Grande",Helvetica,Arial,"Microsoft YaHei UI","Microsoft YaHei","Hiragino Sans GB","Hiragino Sans GB W3",sans-serif;
 }
 
 .minty-controls {
@@ -124,7 +124,7 @@
 }
 .minty-playlist.open {
   min-height: 1em;
-  max-height: 24em;
+  max-height: 22.15em;
 }
 .minty-playlist.close {
   max-height: 0;
