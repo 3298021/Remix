@@ -4,12 +4,12 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
 /**
  * 音乐播放器
  *
- * @package Minty
+ * @package Remix
  * @author ShingChi
- * @version 2.0.0
+ * @version 2.1.0
  * @link https://github.com/shingchi
  */
-class Minty_Plugin implements Typecho_Plugin_Interface
+class Remix_Plugin implements Typecho_Plugin_Interface
 {
     /**
      * 激活插件方法,如果激活失败,直接抛出异常
@@ -21,15 +21,15 @@ class Minty_Plugin implements Typecho_Plugin_Interface
     public static function activate()
     {
         // 编辑按钮
-        Typecho_Plugin::factory('admin/editor-js.php')->markdownEditor = array('Minty_Plugin', 'addButton');
+        Typecho_Plugin::factory('admin/editor-js.php')->markdownEditor = array('Remix_Plugin', 'addButton');
 
         // 前端输出
-        Typecho_Plugin::factory('Widget_Abstract_Contents')->excerptEx = array('Minty_Plugin', 'parse');
-        Typecho_Plugin::factory('Widget_Abstract_Contents')->contentEx = array('Minty_Plugin', 'parse');
-        Typecho_Plugin::factory('Widget_Archive')->header = array('Minty_Plugin', 'header');
-        Typecho_Plugin::factory('Widget_Archive')->footer = array('Minty_Plugin', 'footer');
+        Typecho_Plugin::factory('Widget_Abstract_Contents')->excerptEx = array('Remix_Plugin', 'parse');
+        Typecho_Plugin::factory('Widget_Abstract_Contents')->contentEx = array('Remix_Plugin', 'parse');
+        Typecho_Plugin::factory('Widget_Archive')->header = array('Remix_Plugin', 'header');
+        Typecho_Plugin::factory('Widget_Archive')->footer = array('Remix_Plugin', 'footer');
 
-        Helper::addAction('minty', 'Minty_Action');
+        Helper::addAction('remix', 'Remix_Action');
     }
 
     /**
@@ -42,7 +42,7 @@ class Minty_Plugin implements Typecho_Plugin_Interface
      */
     public static function deactivate()
     {
-        Helper::removeAction('minty');
+        Helper::removeAction('remix');
     }
 
     /**
@@ -86,7 +86,7 @@ class Minty_Plugin implements Typecho_Plugin_Interface
 
         /** 请求哈希值 */
         $hash = new Typecho_Widget_Helper_Form_Element_Text(
-            'hash', NULL, 'mintyv2.0.0',
+            'hash', NULL, 'Remix_v2.0.0',
             _t('前端请求哈希值'),
             _t('设置有利于防止别人盗用自己站点的api')
         );
@@ -113,20 +113,20 @@ class Minty_Plugin implements Typecho_Plugin_Interface
         $content = empty($lastResult) ? $content : $lastResult;
 
         if ($widget instanceof Widget_Archive) {
-            $pattern = '/<p>\[Minty serve=(.*)(\s)auto=(.*)(\s)loop=(.*)(\s)type=(.*)(\s)songs=(.*)\]<\/p>/i';
-            $replace = '<div class="minty" data-serve="' . '\1' . '" data-auto="' . '\3' . '" data-loop="' . '\5' . '" data-type="' . '\7' . '" data-songs="' . '\9' . '">
-    <div class="minty-controls">
-        <div class="minty-detail">歌曲 - 艺术家</div>
-        <div class="minty-progress">
-            <div class="minty-progress-loaded"></div>
-            <div class="minty-progress-played"></div>
+            $pattern = '/<p>\[Remix serve=(.*)(\s)auto=(.*)(\s)loop=(.*)(\s)type=(.*)(\s)songs=(.*)\]<\/p>/i';
+            $replace = '<div class="remix" data-serve="' . '\1' . '" data-auto="' . '\3' . '" data-loop="' . '\5' . '" data-type="' . '\7' . '" data-songs="' . '\9' . '">
+    <div class="remix-controls">
+        <div class="remix-detail">歌曲 - 艺术家</div>
+        <div class="remix-progress">
+            <div class="remix-progress-loaded"></div>
+            <div class="remix-progress-played"></div>
         </div>
-        <div class="minty-duration">00:00</div>
-        <i class="minty-button-play"></i>
-        <i class="minty-button-volume"></i>
-        <i class="minty-button-menu"></i>
+        <div class="remix-duration">00:00</div>
+        <i class="remix-button-play"></i>
+        <i class="remix-button-volume"></i>
+        <i class="remix-button-menu"></i>
     </div>
-    <ul class="minty-playlist"></ul>
+    <ul class="remix-playlist"></ul>
 </div>';
 
             $content = preg_replace($pattern, $replace, $content);
@@ -143,7 +143,7 @@ class Minty_Plugin implements Typecho_Plugin_Interface
      */
     public static function header()
     {
-        $css = Helper::options()->pluginUrl . '/Minty/dist/css/minty.min.css';
+        $css = Helper::options()->pluginUrl . '/Remix/dist/css/remix.min.css';
         echo '<link rel="stylesheet" href="' . $css . '">' . "\n";
     }
 
@@ -157,14 +157,15 @@ class Minty_Plugin implements Typecho_Plugin_Interface
     {
         Typecho_Widget::widget('Widget_Options')->to($options);
 
-        $js = $options->pluginUrl . '/Minty/dist/js/minty.concat.min.js';
-        $swf = $options->pluginUrl . '/Minty/dist/swf';
-?><script>
-  // Minty Config
-  var minty = {
-    apiUrl: '<?php $options->index('/action/minty'); ?>',
-    swfUrl: '<?php echo $swf; ?>/',
-    hash: '<?php echo Typecho_Common::hash($options->plugin('Minty')->hash); ?>'
+        $js = $options->pluginUrl . '/Remix/dist/js/remix.concat.min.js';
+        $swf = $options->pluginUrl . '/Remix/dist/swf';
+?>
+<script>
+  // Remix Config
+  var remix = {
+    url: '<?php $options->index('/action/remix'); ?>',
+    swf: '<?php echo $swf; ?>/',
+    hash: '<?php echo Typecho_Common::hash($options->plugin('Remix')->hash); ?>'
   };
 </script>
 <?php
@@ -181,7 +182,7 @@ class Minty_Plugin implements Typecho_Plugin_Interface
     {
         ?>// 播放器按钮
     editor.hooks.chain('makeButton', function(buttons, makeButton, bindCommand, ui) {
-        buttons.minty = makeButton('wmd-minty-button', '音乐 [Minty] Ctrl+X', '0', function(chunk, postProcessing) {
+        buttons.remix = makeButton('wmd-remix-button', '音乐 [Remix] Ctrl+X', '0', function(chunk, postProcessing) {
             var background = ui.createBackground();
 
             ui.prompt("<p><b>插入音乐</b></p><p>1. 服务: 网易云音乐(<b>nets</b>) 和虾米(<b>xiami</b>)</p><p>2. 自动(auto) 和循环(loop): <b>1 或 0</b></p><p>3. 类型: 单曲(song),列表(list),专辑(album),精选集(collect)</p><p>4. 输入框可以输入虾米单曲、专辑、精选集或列表的ID如:<br><b>单曲: 1773431302; 列表: 1769023557,2091668</b></p>", '', function(music) {
@@ -190,7 +191,7 @@ class Minty_Plugin implements Typecho_Plugin_Interface
 
                 if (music !== null) {
                     music = music.replace("http://", "");
-                    chunk.startTag = "[Minty serve=服务 auto=自动 loop=循环 type=类型 songs=" + music + "]";
+                    chunk.startTag = "[Remix serve=服务 auto=自动 loop=循环 type=类型 songs=" + music + "]";
                     chunk.endTag = "";
                 }
                 postProcessing();
@@ -199,12 +200,12 @@ class Minty_Plugin implements Typecho_Plugin_Interface
         });
 
         // 按钮样式
-        var button = buttons.minty.getElementsByTagName("span")[0];
+        var button = buttons.remix.getElementsByTagName("span")[0];
         button.style.backgroundImage = "none";
 
-        buttons.minty.style.backgroundImage = "url(<?php echo Typecho_Common::url('dist/image/music.png', Helper::options()->pluginUrl('Minty')); ?>)";
-        buttons.minty.style.backgroundRepeat = "no-repeat";
-        buttons.minty.style.backgroundPosition = "3px 3px";
+        buttons.remix.style.backgroundImage = "url(<?php echo Typecho_Common::url('dist/image/music.png', Helper::options()->pluginUrl('Remix')); ?>)";
+        buttons.remix.style.backgroundRepeat = "no-repeat";
+        buttons.remix.style.backgroundPosition = "3px 3px";
 
         // 快捷键
         document.getElementById("text").addEventListener("keydown", function(key) {
@@ -213,7 +214,7 @@ class Minty_Plugin implements Typecho_Plugin_Interface
                 var keyCodeStr = String.fromCharCode(keyCode).toLowerCase();
 
                 if (keyCodeStr == "x") {
-                    buttons.minty.click();
+                    buttons.remix.click();
                 }
             }
         }, false);

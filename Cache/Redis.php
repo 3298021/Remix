@@ -2,10 +2,11 @@
 /**
  * Redis缓存
  *
+ * @package Remix
  * @author shingchi <shingchi@sina.cn>
  * @license GNU General Public License 2.0
  */
-class Minty_Cache_Redis implements Minty_Cache_Interface
+class Remix_Cache_Redis implements Remix_Cache_Interface
 {
     /**
      * redis对象

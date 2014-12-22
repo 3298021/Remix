@@ -2,10 +2,11 @@
 /**
  * 网易音乐类
  *
+ * @package Remix
  * @author shingchi <shingchi@sina.cn>
  * @license GNU General Public License 2.0
  */
-class Minty_Music_Nets implements Minty_Music_Interface
+class Remix_Music_Nets implements Remix_Music_Interface
 {
     /**
      * 获取歌曲

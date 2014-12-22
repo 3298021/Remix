@@ -1,3 +1,4 @@
+/*! Remix v2.1.0 (https://github.com/shingchi/Remix) | by shingchi <shingchi@sina.cn> 2014-12-22 | Licensed under MIT */ 
 (function(global, undefined) {
 
 'use strict';

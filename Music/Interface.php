@@ -2,10 +2,11 @@
 /**
  * 音乐接口类
  *
+ * @package Remix
  * @author shingchi <shingchi@sina.cn>
  * @license GNU General Public License 2.0
  */
-interface Minty_Music_Interface
+interface Remix_Music_Interface
 {
     /**
      * 获取歌曲

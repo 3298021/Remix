@@ -2,10 +2,11 @@
 /**
  * 缓存接口类
  *
+ * @package Remix
  * @author shingchi <shingchi@sina.cn>
  * @license GNU General Public License 2.0
  */
-interface Minty_Cache_Interface
+interface Remix_Cache_Interface
 {
     /**
      * 设置缓存

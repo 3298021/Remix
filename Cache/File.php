@@ -3,10 +3,11 @@
 /**
  * 文件式缓存
  *
+ * @package Remixs
  * @author shingchi <shingchi@sina.cn>
  * @license GNU General Public License 2.0
  */
-class Minty_Cache_File implements Minty_Cache_Interface
+class Remix_Cache_File implements Remix_Cache_Interface
 {
     /**
      * 缓存路径

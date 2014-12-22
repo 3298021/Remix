@@ -1,19 +1,19 @@
 {
-  "name": "Minty",
-  "version": "2.0.0",
+  "name": "Remix",
+  "version": "2.1.0",
   "description": "a clean and simple xiami player plugin for typecho",
   "keywords": [
     "xiami player",
     "typecho plugin"
   ],
-  "homepage": "https://github.com/shingchi/Minty",
+  "homepage": "https://github.com/shingchi/Remix",
   "author": "shingchi <shingchi@sina.cn>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/shingchi/Minty.git"
+    "url": "https://github.com/shingchi/Remix.git"
   },
   "bugs": {
-    "url": "https://github.com/shingchi/Minty/issues"
+    "url": "https://github.com/shingchi/Remix/issues"
   },
   "dependencies": {
     "jquery": "latest"
@@ -30,6 +30,6 @@
   },
   "license": {
     "type": "MIT",
-    "url": "https://github.com/shingchi/Minty/blob/master/LICENSE"
+    "url": "https://github.com/shingchi/Remix/blob/master/LICENSE"
   }
 }

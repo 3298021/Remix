@@ -1,12 +1,12 @@
 <?php
 /**
- * Minty歌曲数据提取动作
+ * Remix操作类
  *
- * @package Minty
+ * @package Remix
  * @author shingchi
  * @license GNU General Public License 2.0
  */
-class Minty_Action extends Typecho_Widget implements Widget_Interface_Do
+class Remix_Action extends Typecho_Widget implements Widget_Interface_Do
 {
     /** 缓存标识 */
     const SONG_MARK = '-song-';
@@ -37,7 +37,7 @@ class Minty_Action extends Typecho_Widget implements Widget_Interface_Do
 
         /* 获取插件配置 */
         $options = parent::widget('Widget_Options');
-        $this->_config = $options->plugin('Minty');
+        $this->_config = $options->plugin('Remix');
 
         /* 初始服务标识 */
         if (isset($request->serve) && !empty($request->serve)) {
@@ -49,7 +49,7 @@ class Minty_Action extends Typecho_Widget implements Widget_Interface_Do
         /* 判断来路 */
         $siteParts = parse_url($options->siteUrl);
         $refParts = parse_url($request->getReferer());
-        $hash = $request->getServer('HTTP_MINTY_HASH');
+        $hash = $request->getServer('HTTP_REMIX_HASH');
 
         if (!$request->isAjax()
             || $siteParts['host'] != $refParts['host']
@@ -175,11 +175,11 @@ class Minty_Action extends Typecho_Widget implements Widget_Interface_Do
 
             if ($mode == 'file') {
                 $cacheDir = __DIR__ . '/temp';
-                static::$cache = new Minty_Cache_File($cacheDir);
+                static::$cache = new Remix_Cache_File($cacheDir);
             } elseif ($mode == 'redis') {
-                static::$cache = new Minty_Cache_Redis($host, $port);
+                static::$cache = new Remix_Cache_Redis($host, $port);
             } else {
-                static::$cache = new Minty_Cache_Memcache($host, $port);
+                static::$cache = new Remix_Cache_Memcache($host, $port);
             }
         }
 
@@ -196,10 +196,10 @@ class Minty_Action extends Typecho_Widget implements Widget_Interface_Do
     {
         if (empty(static::$server[$serve])) {
             if ('nets' == $serve) {
-                static::$server['nets'] = new Minty_Music_Nets();
+                static::$server['nets'] = new Remix_Music_Nets();
             } else {
                 $token = $cache->get('xiamiToken');
-                static::$server['xiami'] = new Minty_Music_Xiami($token);
+                static::$server['xiami'] = new Remix_Music_Xiami($token);
 
                 if (empty($token)) {
                     $server = static::$server['xiami'];

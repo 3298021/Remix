@@ -2,10 +2,11 @@
 /**
  * Memcache缓存
  *
+ * @package Remix
  * @author shingchi <shingchi@sina.cn>
  * @license GNU General Public License 2.0
  */
-class Minty_Cache_Memcache implements Minty_Cache_Interface
+class Remix_Cache_Memcache implements Remix_Cache_Interface
 {
     /**
      * memcache对象

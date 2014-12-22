@@ -1,13 +1,13 @@
 ## 简介 ##
 
-一个简洁清新的 Typecho 播放器插件，支持 Memcache 和文件式缓存服务支持。
+一个简洁清新的 Typecho 播放器插件，支持 Memcache 和文件式缓存服务。
 
 ## 使用 ##
 
 后台支持编辑器按钮插入音乐，由于技术不够，所以多部分写入要靠手写。格式为单独一行，上下要空行：
 
 ```markdown
-[Minty serve=服务 auto=自动 loop=循环 type=类型 songs=ID]
+[Remix serve=服务 auto=自动 loop=循环 type=类型 songs=ID]
 ```
 
 ### 参数 ###
@@ -20,10 +20,10 @@
 
 ### 示例 ###
 
- - 单曲: `[Minty serve=xiami auto=0 loop=1 type=song songs=2086679]`
- - 列表: `[Minty serve=nets auto=0 loop=1 type=list songs=2039856,2086679,1298289]`
- - 专辑: `[Minty serve=xiami auto=0 loop=1 type=album songs=12019827]`
- - 精选集: `[Minty serve=nets auto=0 loop=1 type=collect songs=4406118]`
+ - 单曲: `[Remix serve=xiami auto=0 loop=1 type=song songs=2086679]`
+ - 列表: `[Remix serve=nets auto=0 loop=1 type=list songs=2039856,2086679,1298289]`
+ - 专辑: `[Remix serve=xiami auto=0 loop=1 type=album songs=12019827]`
+ - 精选集: `[Remix serve=nets auto=0 loop=1 type=collect songs=4406118]`
 
 ### 缓存 ###
 

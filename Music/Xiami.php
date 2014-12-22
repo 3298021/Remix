@@ -2,10 +2,11 @@
 /**
  * 虾米音乐类
  *
+ * @package Remix
  * @author shingchi <shingchi@sina.cn>
  * @license GNU General Public License 2.0
  */
-class Minty_Music_Xiami implements Minty_Music_Interface
+class Remix_Music_Xiami implements Remix_Music_Interface
 {
     /** api地址 */
     const API_URL = 'http://m.xiami.com/web/get-songs?type=0';

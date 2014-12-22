@@ -1,32 +1,32 @@
 @font-face {
-  font-family: 'minty';
-  src:url('../fonts/minty.eot?oyegdh');
-  src:url('../fonts/minty.eot?#iefixoyegdh') format('embedded-opentype'),
-    url('../fonts/minty.woff?oyegdh') format('woff'),
-    url('../fonts/minty.ttf?oyegdh') format('truetype'),
-    url('../fonts/minty.svg?oyegdh#minty') format('svg');
+  font-family: 'Remix';
+  src:url('../fonts/remix.eot?oyegdh');
+  src:url('../fonts/remix.eot?#iefixoyegdh') format('embedded-opentype'),
+    url('../fonts/remix.woff?oyegdh') format('woff'),
+    url('../fonts/remix.ttf?oyegdh') format('truetype'),
+    url('../fonts/remix.svg?oyegdh#minty') format('svg');
   font-weight: normal;
   font-style: normal;
 }
 
-.minty,
-.minty * {
+.remix,
+.remix * {
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
 }
-.minty {
+.remix {
   margin: 1em auto;
   font: 14px/1.5 "Segoe UI","Lucida Grande",Helvetica,Arial,"Microsoft YaHei UI","Microsoft YaHei","Hiragino Sans GB","Hiragino Sans GB W3",sans-serif;
 }
 
-.minty-controls {
+.remix-controls {
   position: relative;
   padding: .5em .715em;
   background-color: #6699cc;
   color: #fff;
 }
 
-.minty-detail {
+.remix-detail {
   height: 1.5em;
   padding-right: 7em;
   padding-left: 1.5em;
@@ -34,7 +34,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.minty-duration {
+.remix-duration {
   position: absolute;
   top: .8em;
   right: 4.285em;
@@ -42,7 +42,7 @@
   text-align: right;
 }
 
-.minty-progress {
+.remix-progress {
   position: relative;
   height: .5em;
   margin-top: .5em;
@@ -50,26 +50,26 @@
   background-color: #fff;
   cursor: pointer;
 }
-.minty-progress-loaded,
-.minty-progress-played {
+.remix-progress-loaded,
+.remix-progress-played {
   position: absolute;
   top: 0;
   left: 0;
   width: 0;
   height: 100%;
 }
-.minty-progress-loaded {
+.remix-progress-loaded {
   background-color: #eee;
 }
-.minty-progress-played {
+.remix-progress-played {
   background-color: #336699;
 }
 
-[class^="minty-button-"], [class*=" minty-button-"] {
+[class^="remix-button-"], [class*=" remix-button-"] {
   position: absolute;
   top: .8em;
   cursor: pointer;
-  font-family: 'minty';
+  font-family: 'Remix';
   speak: none;
   font-style: normal;
   font-weight: normal;
@@ -79,38 +79,38 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-.minty-button-play {
+.remix-button-play {
   left: .715em;
 }
-.minty-button-volume {
+.remix-button-volume {
   right: 2.5em;
 }
-.minty-button-menu {
+.remix-button-menu {
   right: .715em;
 }
-.minty-pause,
-.minty-mute {
+.remix-pause,
+.remix-mute {
   display: none;
 }
-.minty-button-play.playing:before {
+.remix-button-play.playing:before {
   content: "\e602";
 }
-.minty-button-play:before,
-.minty-button-play.pause:before {
+.remix-button-play:before,
+.remix-button-play.pause:before {
   content: "\e601";
 }
-.minty-button-volume.volume:before,
-.minty-button-volume:before {
+.remix-button-volume.volume:before,
+.remix-button-volume:before {
   content: "\e603";
 }
-.minty-button-volume.mute:before {
+.remix-button-volume.mute:before {
   content: "\e604";
 }
-.minty-button-menu:before {
+.remix-button-menu:before {
   content: "\e600";
 }
 
-.minty-playlist {
+.remix-playlist {
   list-style: none;
   max-height: 0;
   overflow-y: auto;
@@ -122,33 +122,33 @@
   -moz-transition: max-height .3s ease;
   transition: max-height .3s ease;
 }
-.minty-playlist.open {
+.remix-playlist.open {
   min-height: 1em;
   max-height: 22.15em;
 }
-.minty-playlist.close {
+.remix-playlist.close {
   max-height: 0;
 }
-.minty-playlist li {
+.remix-playlist li {
   padding: .357em .715em;
   background-color: #f9f9f9;
   cursor: pointer;
 }
-.minty-playlist li.selected,
-.minty-playlist li:hover {
+.remix-playlist li.selected,
+.remix-playlist li:hover {
   background-color: #eee;
 }
 
-.minty-playlist::-webkit-scrollbar {
+.remix-playlist::-webkit-scrollbar {
   width: .5em;
 }
-.minty-playlist::-webkit-scrollbar-track {
+.remix-playlist::-webkit-scrollbar-track {
   background-color: #f9f9f9;
 }
-.minty-playlist::-webkit-scrollbar-thumb {
+.remix-playlist::-webkit-scrollbar-thumb {
   border-radius: 3px;
   background-color: #eee;
 }
-.minty-playlist::-webkit-scrollbar-thumb:hover {
+.remix-playlist::-webkit-scrollbar-thumb:hover {
   background-color: #ccc;
 }
