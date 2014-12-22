@@ -3,7 +3,7 @@
 
 # build
 /.temp/
-/dist/css/minty.css
-/dist/js/minty.js
+/dist/css/remix.css
+/dist/js/remix.js
 /dist/swf/
 !/dist/swf/soundmanager2.swf
