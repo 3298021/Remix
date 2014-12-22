@@ -8,6 +8,7 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
  * @author ShingChi
  * @version 2.1.0
  * @link https://github.com/shingchi
+ * @dependence 14.5.26-*
  */
 class Remix_Plugin implements Typecho_Plugin_Interface
 {
@@ -21,13 +22,13 @@ class Remix_Plugin implements Typecho_Plugin_Interface
     public static function activate()
     {
         // 编辑按钮
-        Typecho_Plugin::factory('admin/editor-js.php')->markdownEditor = array('Remix_Plugin', 'addButton');
+        Typecho_Plugin::factory('admin/editor-js.php')->markdownEditor_30 = array('Remix_Plugin', 'addButton');
 
         // 前端输出
-        Typecho_Plugin::factory('Widget_Abstract_Contents')->excerptEx = array('Remix_Plugin', 'parse');
-        Typecho_Plugin::factory('Widget_Abstract_Contents')->contentEx = array('Remix_Plugin', 'parse');
-        Typecho_Plugin::factory('Widget_Archive')->header = array('Remix_Plugin', 'header');
-        Typecho_Plugin::factory('Widget_Archive')->footer = array('Remix_Plugin', 'footer');
+        Typecho_Plugin::factory('Widget_Abstract_Contents')->excerptEx_30 = array('Remix_Plugin', 'parse');
+        Typecho_Plugin::factory('Widget_Abstract_Contents')->contentEx_30 = array('Remix_Plugin', 'parse');
+        Typecho_Plugin::factory('Widget_Archive')->header_30 = array('Remix_Plugin', 'header');
+        Typecho_Plugin::factory('Widget_Archive')->footer_30 = array('Remix_Plugin', 'footer');
 
         Helper::addAction('remix', 'Remix_Action');
     }
