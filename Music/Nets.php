@@ -124,7 +124,7 @@ class Remix_Music_Nets implements Remix_Music_Interface
     /**
      * 解析歌曲
      *
-     * @param string $url
+     * @param string $track
      */
     protected function parse($track)
     {

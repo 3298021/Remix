@@ -3,7 +3,7 @@
 /**
  * 文件式缓存
  *
- * @package Remixs
+ * @package Remix
  * @author shingchi <shingchi@sina.cn>
  * @license GNU General Public License 2.0
  */

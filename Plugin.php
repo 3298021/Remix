@@ -183,7 +183,7 @@ class Remix_Plugin implements Typecho_Plugin_Interface
     {
         ?>// 播放器按钮
     editor.hooks.chain('makeButton', function(buttons, makeButton, bindCommand, ui) {
-        buttons.remix = makeButton('wmd-remix-button', '音乐 [Remix] Ctrl+X', '0', function(chunk, postProcessing) {
+        buttons.remix = makeButton('wmd-remix-button', '音乐 [Remix] Ctrl+S', '0', function(chunk, postProcessing) {
             var background = ui.createBackground();
 
             ui.prompt("<p><b>插入音乐</b></p><p>1. 服务: 网易云音乐(<b>nets</b>) 和虾米(<b>xiami</b>)</p><p>2. 自动(auto) 和循环(loop): <b>1 或 0</b></p><p>3. 类型: 单曲(song),列表(list),专辑(album),精选集(collect)</p><p>4. 输入框可以输入虾米单曲、专辑、精选集或列表的ID如:<br><b>单曲: 1773431302; 列表: 1769023557,2091668</b></p>", '', function(music) {

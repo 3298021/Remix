@@ -1,7 +1,7 @@
 {
   "name": "Remix",
   "version": "2.1.0",
-  "description": "a clean and simple xiami player plugin for typecho",
+  "description": "a clean and simple music player plugin for typecho",
   "keywords": [
     "xiami player",
     "typecho plugin"

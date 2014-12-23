@@ -160,8 +160,8 @@ class Remix_Music_Xiami implements Remix_Music_Interface
 
             if ('_xiamitoken' == $key) {
                 static::$token = $value;
+                break;
             }
-            break;
         }
     }
 
