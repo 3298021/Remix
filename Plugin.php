@@ -209,12 +209,13 @@ class Remix_Plugin implements Typecho_Plugin_Interface
         buttons.remix.style.backgroundPosition = "3px 3px";
 
         // 快捷键
-        document.getElementById("text").addEventListener("keydown", function(key) {
-            if ((key.ctrlKey || key.metaKey) && !key.altKey && !key.shiftKey) {
-                var keyCode = key.charCode || key.keyCode;
+        document.getElementById("text").addEventListener("keydown", function(e) {
+            if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey) {
+                var keyCode = e.charCode || e.keyCode;
                 var keyCodeStr = String.fromCharCode(keyCode).toLowerCase();
 
-                if (keyCodeStr == "x") {
+                if (keyCodeStr == "s") {
+                    e.preventDefault();
                     buttons.remix.click();
                 }
             }
