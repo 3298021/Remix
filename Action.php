@@ -103,7 +103,7 @@ class Remix_Action extends Typecho_Widget implements Widget_Interface_Do
         $message = array();
 
         foreach ($ids as $id) {
-            $result = $this->song($id, true);
+            $result = $this->song($id);
             $message[] = $result[0];
         }
 
