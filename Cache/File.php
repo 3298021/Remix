@@ -74,7 +74,7 @@ class Remix_Cache_File implements Remix_Cache_Interface
 
         /** 清除已经过时的缓存  */
         @unlink($path);
-        return;
+        return '';
     }
 
     /**
