@@ -77,6 +77,10 @@ class Remix_Music_Xiami implements Remix_Music_Interface
         $this->isCookie = false;
         $album = $this->http($url);
 
+        if (is_null($album)) {
+            return;
+        }
+
         return $album;
     }
 
@@ -90,6 +94,10 @@ class Remix_Music_Xiami implements Remix_Music_Interface
         $url = static::API_URL . '&rtype=collect&id=' . $id . '&_xiamitoken=' . static::$token;
         $this->isCookie = false;
         $collect = $this->http($url);
+
+        if (is_null($collect)) {
+            return;
+        }
 
         return $collect;
     }
