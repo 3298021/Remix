@@ -36,4 +36,4 @@
 ## 感谢 ##
 
  - [SoundManager2](https://github.com/scottschiller/SoundManager2) 播放器内核
- - [Hermit](https://github.com/iMuFeng/Hermit) 提供了歌曲的API
+ - [Hermit](https://github.com/iMuFeng/Hermit) 提供音乐API和许多参考
