@@ -110,7 +110,7 @@
   content: "\e600";
 }
 
-.remix-playlist {
+ul.remix-playlist {
   list-style: none;
   max-height: 0;
   overflow-y: auto;

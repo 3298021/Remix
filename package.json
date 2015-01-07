@@ -15,9 +15,6 @@
   "bugs": {
     "url": "https://github.com/shingchi/Remix/issues"
   },
-  "dependencies": {
-    "jquery": "latest"
-  },
   "devDependencies": {
     "gulp": "^3.8.9",
     "gulp-concat": "latest",
