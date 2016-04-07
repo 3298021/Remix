@@ -63,7 +63,7 @@ class Remix_Plugin implements Typecho_Plugin_Interface
                 'file' => _t('文件式'),
                 'redis' => _t('Redis')
             ),
-            'memcache',
+            'file',
             _t('缓存模式'),
             _t('Redis 缓存暂时无法使用，请选择其余两个，默认为 Memcache。下面配置留空为默认，文件式缓存不需要配置。')
         );
@@ -114,11 +114,15 @@ class Remix_Plugin implements Typecho_Plugin_Interface
         $content = empty($lastResult) ? $content : $lastResult;
 
         if ($widget instanceof Widget_Archive) {
-            $pattern = '/<p>\[Remix serve=(.*)(\s)auto=(.*)(\s)loop=(.*)(\s)type=(.*)(\s)songs=(.*)\]<\/p>/i';
+            $pattern = '/\[Remix serve=(.*)(\s)auto=(.*)(\s)loop=(.*)(\s)type=(.*)(\s)songs=(.*)\]/i';
             $replace = '<div class="remix" data-serve="' . '\1' . '" data-auto="' . '\3' . '" data-loop="' . '\5' . '" data-type="' . '\7' . '" data-songs="' . '\9' . '">
-    <div class="remix-controls">
-        <div class="remix-detail">歌曲 - 艺术家</div>
-        <div class="remix-progress">
+    <div class="remix-controls">';
+            if( $widget->widget('Widget_User')->hasLogin() ) {
+     	          $replace = $replace . '<div class="remix-detail">(正在缓冲) 歌曲 - 艺术家</div>';
+            } else {
+     	          $replace = $replace . '<div class="remix-detail">([未登录]正在缓冲)</div>';
+            }
+            $replace = $replace . '<div class="remix-progress">
             <div class="remix-progress-loaded"></div>
             <div class="remix-progress-played"></div>
         </div>
