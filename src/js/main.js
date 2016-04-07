@@ -688,15 +688,15 @@ Player = function(node) {
           index = utils.dom.getData(target, 'index');
           src = data.sources[index].src;
 
-          if (data.selectedIndex === index) {
+          if (data.selectedIndex != index) {
+            if (soundManager.canPlayURL(src)) {
+              playIndex(index);
+            }
+          } else {
             if (!soundObject) {
               soundObject = makeSound(src);
             }
             soundObject.togglePause();
-          } else {
-            if (soundManager.canPlayURL(src)) {
-              playIndex(index);
-            }
           }
 
           handled = true;
