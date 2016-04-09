@@ -55,6 +55,27 @@ class Remix_Plugin implements Typecho_Plugin_Interface
      */
     public static function config(Typecho_Widget_Helper_Form $form)
     {
+        /* 如果清除缓存 */
+        if (isset($_GET['action']) && $_GET['action'] == 'deletefile')
+			  self::deletefile();
+			  
+        /* 网易云音乐代理服务器地址 */
+        $proxyAddNet = new Typecho_Widget_Helper_Form_Element_Text(
+            'proxyAddNet', NULL, '0.0.0.0',
+            _t('网易云音乐代理服务器地址'),
+            _t('解决国外主机无法解析网易云音乐相关问题，默认不使用填写 0.0.0.0')
+
+        );
+         $form->addInput($proxyAddNet);
+        
+        /* 网易云音乐代理端口 */
+        $proxyPortNet = new Typecho_Widget_Helper_Form_Element_Text(
+            'proxyPortNet', NULL, '80',
+            _t('网易云音乐代理端口'),
+            _t('代理服务器端口，由代理服务器决定，默认为 80')
+        );
+        $form->addInput($proxyPortNet);
+        
         /** 缓存模式 */
         $cacheMode = new Typecho_Widget_Helper_Form_Element_Radio(
             'cacheMode',
@@ -92,6 +113,19 @@ class Remix_Plugin implements Typecho_Plugin_Interface
             _t('设置有利于防止别人盗用自己站点的api')
         );
         $form->addInput($hash);
+        
+        
+        $cache = new Typecho_Widget_Helper_Form_Element_Radio('cache',
+			  array('false'=>_t('否')),'false',_t('清空缓存'),_t('清空插件生成的缓存文件，必要时可以使用'));
+		    $form->addInput($cache);
+
+		    $submit = new Typecho_Widget_Helper_Form_Element_Submit();
+		    $submit->value(_t('清空歌曲缓存'));
+		    $submit->setAttribute('style','position:relative;');
+		    $submit->input->setAttribute('style','position:absolute;bottom:37px;');
+		    $submit->input->setAttribute('class','btn btn-s btn-warn btn-operate');
+		    $submit->input->setAttribute('formaction',Typecho_Common::url('/options-plugin.php?config=Remix&action=deletefile',Helper::options()->adminUrl));
+		    $form->addItem($submit);
     }
 
     /**
@@ -120,7 +154,7 @@ class Remix_Plugin implements Typecho_Plugin_Interface
             if( $widget->widget('Widget_User')->hasLogin() ) {
      	          $replace = $replace . '<div class="remix-detail">(正在缓冲) 歌曲 - 艺术家</div>';
             } else {
-     	          $replace = $replace . '<div class="remix-detail">([未登录]正在缓冲)</div>';
+     	          $replace = $replace . '<div class="remix-detail">(登录后试听)</div>';
             }
             $replace = $replace . '<div class="remix-progress">
             <div class="remix-progress-loaded"></div>
@@ -227,4 +261,23 @@ class Remix_Plugin implements Typecho_Plugin_Interface
     });
         <?php
     }
+	  
+    /**
+	  * 缓存清空
+	  *
+	  * @access private
+	  * @return void
+	  */
+	  private function deletefile()
+	  {
+	  	$path = __TYPECHO_ROOT_DIR__ .'/usr/plugins/Remix/temp/';
+
+	  	foreach (glob($path.'*') as $filename) {
+		  	@unlink($filename);
+		  }
+
+	  	Typecho_Widget::widget('Widget_Notice')->set(_t('曲目缓存已清空!'),NULL,'success');
+
+		  Typecho_Response::getInstance()->goBack();
+	  }
 }
